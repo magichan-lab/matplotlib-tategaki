@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matplotlib-tategaki"
+version = "0.1.0"
+description = "Stacked labels and Japanese OpenType vertical text for Matplotlib"
+readme = "README.md"
+license = "MIT AND Unicode-3.0"
+license-files = ["LICENSE", "src/tategaki/UNICODE-LICENSE.txt"]
+requires-python = ">=3.11"
+dependencies = ["matplotlib>=3.11.2", "regex>=2026.9.29", "uharfbuzz>=0.55,<1"]
+keywords = ["matplotlib", "Japanese", "vertical text", "tategaki"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Text Processing :: Fonts",
+]
+
+[project.urls]
+Repository = "https://github.com/magichan-lab/matplotlib-tategaki"
+Issues = "https://github.com/magichan-lab/matplotlib-tategaki/issues"
+
+[project.optional-dependencies]
+opentype = ["fonttools>=4.68"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+tategaki = ["UNICODE-LICENSE.txt"]
+
+# ----------------------------------------
+# uv 開発環境
+# ----------------------------------------
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=6",
+    "ruff>=0.9",
+    "fonttools>=4.68",
+]
+
+# ----------------------------------------
+# pytest
+# ----------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+]
+
+# ----------------------------------------
+# pytest-cov
+# ----------------------------------------
+
+[tool.coverage.run]
+branch = true
+source = ["tategaki"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+
+# ----------------------------------------
+# Ruff
+# ----------------------------------------
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # Pyflakes
+    "I",   # import sorting
+    "B",   # common bugs
+    "UP",  # Python 3.11+ modernization
+]
+ignore = ["E501"]  # Ruff formatter does not enforce a hard line length.
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
