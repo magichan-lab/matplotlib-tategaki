@@ -14,7 +14,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
-from tategaki import set_xticklabels, stack_label
+import tategaki
 
 
 def main():
@@ -35,15 +35,15 @@ def main():
     if font is None or not font.is_file():
         parser.error("--font で日本語の縦組みに対応する TTF/OTF ファイルを指定してください。")
 
+    tategaki.enable()
     fig, ax = plt.subplots(figsize=(7, 6))
     try:
         positions = [0, 1, 2, 3]
         ax.bar(positions, [10, 24, 36, 18], color="#548ca8")
-        set_xticklabels(
-            ax,
+        ax.set_xticks(
             positions,
             ["「ケーキ」", "コーヒー", "東京ABC", "きゃらめる"],
-            engine="opentype",
+            writing_mode="vertical-rl",
             orientation="mixed",
             font=font,
             fontsize=16,
@@ -52,12 +52,11 @@ def main():
         fontproperties = FontProperties(fname=font)
         ax.set_title("商品別の売上", fontproperties=fontproperties)
         ax.set_ylabel(
-            stack_label("売上数"),
-            fontproperties=fontproperties,
-            rotation=0,
+            "売上数",
+            writing_mode="vertical-rl",
+            font=font,
             ha="center",
             va="center",
-            linespacing=1.0,
             labelpad=20,
         )
         # 独自の縦書きラベルに合わせ、軸タイトルと図の下余白を確保する。
@@ -73,6 +72,7 @@ def main():
             plt.show()
     finally:
         plt.close(fig)
+        tategaki.disable()
 
 
 if __name__ == "__main__":

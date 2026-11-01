@@ -128,7 +128,7 @@ class VerticalText(Artist):
 
     def get_tightbbox(self, renderer=None):
         """クリッピングを反映した表示座標の範囲を返す。"""
-        # Artist's implementation intersects this same extent with clipping.
+        # Artist の実装により、この範囲とクリッピング領域の共通部分が返る。
         return super().get_tightbbox(self._renderer(renderer))
 
     @allow_rasterization

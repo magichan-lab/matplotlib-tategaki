@@ -127,7 +127,7 @@ def test_errors_and_missing_alternate_warning(font_file, tmp_path):
         font.shape("A\n")
     with pytest.raises(TypeError):
         font.shape(None)
-    # Feature coverage is checked per punctuation, not just at font loading.
+    # 機能の対応状況はフォント読込時だけでなく、句読点ごとに確認する。
     tt = TTFont(font_file)
     for lookup in tt["GSUB"].table.LookupList.Lookup:
         for table in lookup.SubTable:
@@ -198,7 +198,7 @@ def test_predraw_bbox_raster_ink_and_mutations(font_file, orientation):
     rgba = np.asarray(fig.canvas.buffer_rgba())
     rows, cols = np.where((rgba[:, :, 2] > 128) & (rgba[:, :, 0] < 128))
     assert len(rows)
-    # Image rows are y-down, display extents are y-up; allow antialiasing 1px.
+    # 画像の行は下向き、表示範囲の y 軸は上向きなので、1 px の平滑化を許容する。
     assert cols.min() >= before.x0 - 1 and cols.max() <= before.x1 + 1
     assert fig.bbox.height - rows.max() >= before.y0 - 1
     assert fig.bbox.height - rows.min() <= before.y1 + 1
@@ -289,13 +289,13 @@ def test_fixed_axis_lifecycle_and_alignment(font_file):
             assert anchor[1] == pytest.approx(ax.bbox.y0 - 8 * dpi / 72)
             assert ax.get_tightbbox().y0 <= a.get_window_extent().y0
         assert len(ax.get_children()) == count
-    # Caller limit changes survive removal; a replacement owns the new state.
+    # 呼び出し側が変更した軸範囲は除去後も保ち、再設定後の状態は新しいハンドルが管理する。
     changed_limits = ax.get_xlim()
     replacement = set_xticklabels(
         ax, positions, ["AB", "きゃっ"], engine="opentype", font=font_file
     )
     assert all(a.axes is None for a in handle.artists)
-    handle.remove()  # Old handle must not remove the replacement.
+    handle.remove()  # 古いハンドルで新しいラベルを除去しない。
     assert len(ax.get_children()) == count
     with pytest.raises(MissingGlyphError):
         set_xticklabels(ax, [0], ["無"], engine="opentype", font=font_file)
@@ -309,7 +309,7 @@ def test_fixed_axis_lifecycle_and_alignment(font_file):
     assert repr(fig.canvas.callbacks.callbacks) == callback_count
     fig.canvas.draw()
     assert ax.xaxis.offsetText.get_text()
-    # set_xticks may expand limits, and remove restores that expansion.
+    # set_xticks による軸範囲の拡張は、除去時に元へ戻す。
     ax.set_xlim(*limits)
     handle = set_xticklabels(ax, [0], ["A"], engine="opentype", font=font_file)
     handle.remove()
@@ -349,7 +349,7 @@ def test_mixed_horizontal_shaping_and_clockwise_outline(font_file):
     shaped = font.shape("AB", "mixed")
     assert len(shaped.runs) == 1
     assert shaped.runs[0].text == "AB" and shaped.runs[0].direction == "ltr"
-    assert shaped.advance == 1100  # 600 + 600 - kerning 100, rather than 2 em
+    assert shaped.advance == 1100  # 2 em ではなく、600 + 600 からカーニング分の 100 を引く。
     assert [g.rotation for g in shaped.glyphs] == [90, 90]
     assert [g.cluster for g in shaped.glyphs] == [0, 1]
     assert [(g.x, g.y) for g in shaped.glyphs] == [(-300, 0), (-300, -500)]
@@ -359,7 +359,7 @@ def test_mixed_horizontal_shaping_and_clockwise_outline(font_file):
     ligature = font.shape("fi", "mixed")
     assert len(ligature.glyphs) == 1 and ligature.advance == 600
     assert font.glyph_order[ligature.glyphs[0].glyph_id] == "fi.liga"
-    assert len(font.shape("fi").glyphs) == 2  # upright still shapes per grapheme
+    assert len(font.shape("fi").glyphs) == 2  # 正立時は書記素ごとに整形する。
     marked = font.shape("A\u0301B", "mixed")
     assert marked.graphemes == ((0, 2), (2, 3))
     assert marked.glyphs[-1].cluster == 2

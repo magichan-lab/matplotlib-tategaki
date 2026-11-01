@@ -35,7 +35,7 @@ class Run:
     script: str
     direction: str
     vertical_orientation: str = "U"
-    rotation: int = 0  # clockwise degrees, after horizontal shaping
+    rotation: int = 0  # 横組みの整形後に適用する時計回りの回転角（度）
 
 
 @dataclass(frozen=True)
@@ -75,7 +75,7 @@ def split_runs(
     """
     if orientation not in {"upright", "mixed"}:
         raise ValueError('orientation must be "upright" or "mixed"')
-    stack_label(text)  # shared type/control validation; never normalize
+    stack_label(text)  # 型と制御文字を共通の処理で検証し、正規化はしない。
     matches = list(regex.finditer(r"\X", text))
     scripts = []
     for match in matches:
@@ -105,7 +105,7 @@ def split_runs(
         script = scripts[i]
         vo = cluster_orientation(match.group()) if orientation == "mixed" else "U"
         if script is None:
-            # ASCII symbols/numbers/spaces are individual upright cells.
+            # ASCII の記号、数字、空白はそれぞれ独立した正立セルにする。
             if all(ord(c) < 128 for c in match.group()) or vo == "R":
                 script = "Latn"
             else:
@@ -190,7 +190,7 @@ class VerticalFont:
         buf.script = script
         buf.language = "ja" if script != "Latn" else "en"
         buf.cluster_level = self.hb.BufferClusterLevel.MONOTONE_GRAPHEMES
-        # Use HarfBuzz defaults, including its choice of vert/vrt2.
+        # vert/vrt2 の選択を含め、HarfBuzz の既定の整形処理を使う。
         self.hb.shape(self.hb_font, buf)
         return tuple(zip(buf.glyph_infos, buf.glyph_positions, strict=True))
 
@@ -202,7 +202,7 @@ class VerticalFont:
         """
         runs, graphemes = split_runs(text, orientation)
         original_runs = runs
-        # Unsupported variation sequences must not silently display a base glyph.
+        # 未対応の異体字列を基本字形に置き換えて表示しない。
         variations = self.ttfont["cmap"].getcmap(0, 5)
         for i, char in enumerate(text):
             cp = ord(char)
@@ -239,8 +239,8 @@ class VerticalFont:
                     f"missing glyph in input span [{run.start}:{run.end}]: {run.text!r}"
                 )
             if run.rotation:
-                # Rotate the whole horizontal run clockwise. Its horizontal
-                # advance becomes downward advance; preserve kerning/marks.
+                # 横組みラン全体を時計回りに回転する。横方向の送り量を下方向へ
+                # 変換し、カーニングと結合記号の位置関係を保つ。
                 center = (self.ttfont["hhea"].ascent + self.ttfont["hhea"].descent) / 2
                 pen_x, horizontal_y = 0, 0
                 for info, pos in shaped:
@@ -261,7 +261,7 @@ class VerticalFont:
                     horizontal_y += pos.y_advance
                 pen_y -= pen_x
             elif run.direction == "ltr":
-                # One grapheme per em, with horizontal shaping for upright Latin.
+                # 正立したラテン文字は横組みで整形し、書記素ごとに 1 em 送る。
                 width = sum(p.x_advance for _, p in shaped)
                 pen_x = -width / 2
                 baseline = (
@@ -300,8 +300,8 @@ class VerticalFont:
                     )
                     pen_x += pos.x_advance
                     pen_y += pos.y_advance
-        # These characters normally need vertical alternates. Feature presence
-        # alone does not establish character coverage.
+        # これらの文字には通常、縦書き用の代替字形が必要である。
+        # 機能の有無だけでは各文字の対応状況を判断できない。
         warning_clusters = [
             (char, "Kana" if char == "ー" else "Hani")
             for char in sorted(set(text).intersection("「」『』（）［］｛｝〈〉《》【】〔〕、。ー"))

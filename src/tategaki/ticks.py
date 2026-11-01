@@ -148,7 +148,7 @@ def _set_opentype(ax, positions, labels, font, fontsize, pad, color, orientation
         raise ValueError("opentype fixed categories require rectilinear axes")
     if len(ax.get_shared_x_axes().get_siblings(ax)) != 1:
         raise ValueError("opentype fixed categories do not support shared x axes")
-    # Validate and shape everything before changing the axis or old handle.
+    # 軸や以前のハンドルを変更する前に、すべてのラベルを検証して整形する。
     artists = [
         VerticalText(
             p,
@@ -162,7 +162,7 @@ def _set_opentype(ax, positions, labels, font, fontsize, pad, color, orientation
         for p, text in zip(positions, labels, strict=True)
     ]
     if not artists:
-        # Even an empty installation validates its font and options.
+        # ラベルが空でもフォントと設定を検証する。
         VerticalText(0, 0, "", font=font, color=color, orientation=orientation).get_layout()
     for artist in artists:
         artist.get_layout()
@@ -170,8 +170,8 @@ def _set_opentype(ax, positions, labels, font, fontsize, pad, color, orientation
     if previous is not None:
         previous.remove()
     handle = VerticalTickHandle(ax, artists)
-    # A blended anchor tracks limits/inversion; the offset and glyph sizes are
-    # in physical points, independent of data scaling and output DPI.
+    # 合成変換による基点は軸範囲と反転に追従する。ずれと字形の寸法には
+    # データ座標の倍率や出力 DPI に依存しない物理的なポイントを使う。
     transform = ax.get_xaxis_transform() + ScaledTranslation(
         0, -pad / 72, ax.get_figure(root=True).dpi_scale_trans
     )

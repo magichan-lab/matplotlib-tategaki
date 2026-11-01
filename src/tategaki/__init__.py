@@ -4,8 +4,16 @@
 
 from .stacking import stack_label
 from .ticks import VerticalTickHandle, set_xticklabels
+from .wrapping import disable, enable
 
-__all__ = ["stack_label", "set_xticklabels", "VerticalText", "VerticalTickHandle"]
+__all__ = [
+    "stack_label",
+    "set_xticklabels",
+    "VerticalText",
+    "VerticalTickHandle",
+    "enable",
+    "disable",
+]
 
 
 def __getattr__(name):
