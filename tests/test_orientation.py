@@ -13,7 +13,7 @@ from tategaki.shaping import split_runs
 
 
 def test_complete_unicode_source_and_default_ranges():
-    """生成表が原本の全範囲と既定値を再現することを確認する。"""
+    """生成済み縦書き方向表が同梱の Unicode 原本と全符号位置で一致することを確認する。"""
     source = Path(__file__).parent / "data" / "VerticalOrientation-17.0.0.txt"
     assert hashlib.sha256(source.read_bytes()).hexdigest() == SOURCE_SHA256
     expected = ["R"] * 0x110000
@@ -28,7 +28,7 @@ def test_complete_unicode_source_and_default_ranges():
 
 
 def test_grapheme_orientation_and_run_boundaries():
-    """書記素の縦書き分類と混在モードのラン境界を確認する。"""
+    """書記素の縦書き方向と混在文字列の区間境界を確認する。"""
     assert [vertical_orientation(c) for c in "A1Ａ東、ー"] == ["R", "R", "U", "U", "Tu", "Tr"]
     assert cluster_orientation("A\u0301") == "R"
     assert cluster_orientation("A\u20dd") == "U"

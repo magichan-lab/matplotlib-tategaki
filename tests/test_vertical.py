@@ -31,7 +31,7 @@ from tategaki.shaping import (
 
 @pytest.fixture(params=[True, False], ids=["glyf", "cff"])
 def font_file(tmp_path, request):
-    """TrueType または CFF 形式の縦組み対応テスト用フォントを作る。"""
+    """TrueType または CFF の縦書き対応テスト用フォントを生成して返す。"""
     is_ttf = request.param
     chars = "ABＣ東京かがきゃっケーキ「」、。$fi1\u3099\u0301\u20dd"
     cmap = {ord(c): f"u{ord(c):04X}" for c in chars}
@@ -82,7 +82,7 @@ def font_file(tmp_path, request):
 
 
 def test_runs_keep_codepoints_and_script_context():
-    """ラン分割で元の文字位置と用字系の文脈を保持することを確認する。"""
+    """区間分割で元文字列の符号位置とスクリプト情報が保たれることを確認する。"""
     text = "「ケーキ、東京。」Aか\u3099B"
     runs, spans = split_runs(text)
     assert "".join(r.text for r in runs) == text
@@ -98,7 +98,7 @@ def test_runs_keep_codepoints_and_script_context():
 
 
 def test_glyph_ids_substitution_clusters_and_spacing(font_file):
-    """字形 ID、縦書き代替、クラスタと送り量を確認する。"""
+    """グリフ置換、クラスタ位置、送り量と空白の論理領域を確認する。"""
     font = VerticalFont(font_file)
     shaped = font.shape("「ケーキ、東京。」AB")
     assert shaped.advance == 11000
@@ -116,7 +116,7 @@ def test_glyph_ids_substitution_clusters_and_spacing(font_file):
 
 
 def test_errors_and_missing_alternate_warning(font_file, tmp_path):
-    """未対応フォントや欠落字形の例外と代替字形の警告を確認する。"""
+    """未対応の入力とフォントで例外や縦書き代替グリフの警告が出ることを確認する。"""
     font = VerticalFont(font_file)
     for text in ["無", "A\ufe0f", "A\u200dB"]:
         with pytest.raises(MissingGlyphError):
@@ -162,7 +162,7 @@ def test_errors_and_missing_alternate_warning(font_file, tmp_path):
 
 
 def test_outline_curves_and_extents(font_file):
-    """輪郭の曲線コードと描画範囲を確認する。"""
+    """輪郭の曲線種別と配置の外接領域を確認する。"""
     font = VerticalFont(font_file)
     layout = make_layout(font, "A「が")
     expected_curve = (
@@ -178,7 +178,7 @@ def test_outline_curves_and_extents(font_file):
 
 @pytest.mark.parametrize("orientation", ["upright", "mixed"])
 def test_predraw_bbox_raster_ink_and_mutations(font_file, orientation):
-    """描画前の範囲、ラスタ描画結果と属性変更時の更新を確認する。"""
+    """描画前の外接矩形、描画位置、属性変更による再配置を確認する。"""
     fig = plt.figure(figsize=(4, 4), dpi=100)
     artist = VerticalText(
         0.5,
@@ -232,7 +232,7 @@ def test_predraw_bbox_raster_ink_and_mutations(font_file, orientation):
 
 @pytest.mark.parametrize("orientation", ["upright", "mixed"])
 def test_direct_save_and_resize(font_file, orientation):
-    """保存と Figure のサイズ変更後にも描画範囲が正しいことを確認する。"""
+    """直接配置した縦書き Artist を各画像形式で保存し、サイズ変更を確認する。"""
     fig = plt.figure(figsize=(3, 3))
     artist = VerticalText(
         0.5,
@@ -257,7 +257,7 @@ def test_direct_save_and_resize(font_file, orientation):
 
 
 def test_fixed_axis_lifecycle_and_alignment(font_file):
-    """固定軸ラベルの設置・除去と位置合わせを確認する。"""
+    """OpenType 目盛りの配置、差し替え、削除時の軸状態復元を確認する。"""
     from matplotlib.ticker import ScalarFormatter
 
     from tategaki import VerticalTickHandle, set_xticklabels
@@ -319,7 +319,7 @@ def test_fixed_axis_lifecycle_and_alignment(font_file):
 
 
 def test_fixed_axis_rejects_shared_and_switches_engine(font_file):
-    """共有軸の拒否と描画方式の切り替えを確認する。"""
+    """非対応の軸を拒否し、描画方式の切り替え時に旧ラベルを除去することを確認する。"""
     from tategaki import set_xticklabels
 
     fig, axes = plt.subplots(2, sharex=True)
@@ -344,7 +344,7 @@ def test_fixed_axis_rejects_shared_and_switches_engine(font_file):
 
 
 def test_mixed_horizontal_shaping_and_clockwise_outline(font_file):
-    """混在モードでの横組み整形と時計回りの輪郭回転を確認する。"""
+    """混在モードの横組み区間、合字、時計回りの輪郭配置を確認する。"""
     font = VerticalFont(font_file)
     shaped = font.shape("AB", "mixed")
     assert len(shaped.runs) == 1
@@ -370,7 +370,7 @@ def test_mixed_horizontal_shaping_and_clockwise_outline(font_file):
 
 
 def test_mixed_vertical_alternates_and_fallback(font_file):
-    """混在モードでの縦書き代替字形と代替不可時の処理を確認する。"""
+    """混在モードの縦書き代替グリフと欠落時の代替処理を確認する。"""
     font = VerticalFont(font_file)
     for char in "「ー、。」":
         glyph = font.shape(char, "mixed").glyphs[0]
@@ -396,7 +396,7 @@ def test_mixed_vertical_alternates_and_fallback(font_file):
 
 
 def test_mixed_bbox_updates_save_and_axis_lifecycle(font_file):
-    """混在モードの範囲更新、保存と軸ラベルの状態遷移を確認する。"""
+    """混在モードの領域更新、画像保存、目盛りの復元を確認する。"""
     from tategaki import set_xticklabels
 
     fig, ax = plt.subplots(figsize=(5, 5), layout="constrained")

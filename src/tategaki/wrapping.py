@@ -24,12 +24,10 @@ class WrappedVerticalText(Text):
     ベースラインがないため、ベースライン指定時は領域の下端を使う。
     """
 
-    def __init__(self, *args, font, orientation="upright", **kwargs):
-        """文字属性と縦書き用フォントを設定し、文字列を検証する。"""
+    def __init__(self, *args, font=None, orientation="upright", **kwargs):
+        """文字属性と省略可能な縦書きフォントからラベルを作る。"""
         from .artist import VerticalText
 
-        if font is None:
-            raise ValueError("vertical text requires an explicit font file")
         self._vertical = VerticalText(0, 0, "", font=font, orientation=orientation)
         super().__init__(*args, **kwargs)
         self._vertical.set_text(self.get_text())

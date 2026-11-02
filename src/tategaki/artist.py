@@ -8,6 +8,7 @@ from matplotlib import colors, rcParams
 from matplotlib.artist import Artist, allow_rasterization
 from matplotlib.transforms import Affine2D, Bbox
 
+from .font import resolve_font
 from .layout import make_layout
 from .shaping import VerticalFont
 from .stacking import stack_label
@@ -22,9 +23,20 @@ class VerticalText(Artist):
     """
 
     def __init__(
-        self, x, y, text, *, font, fontsize=12, color="black", orientation="upright", **kwargs
+        self, x, y, text, *, font=None, fontsize=12, color="black", orientation="upright", **kwargs
     ):
-        """基点、文字列、フォント、文字サイズと描画属性を設定する。"""
+        """縦書き Artist を初期化する。
+
+        Args:
+            x: 基準点の X 座標。
+            y: 基準点の Y 座標。
+            text: 描画する文字列。
+            font: 単一の静的 TTF/OTF フォントファイル。省略時は rcParams から選ぶ。
+            fontsize: 文字サイズ（ポイント）。
+            color: Matplotlib が解釈できる色。
+            orientation: ``"upright"`` または ``"mixed"``。
+            **kwargs: Matplotlib Artist の追加プロパティ。
+        """
         super().__init__()
         self._layout = None
         self._font = None
@@ -53,8 +65,8 @@ class VerticalText(Artist):
         return self._text
 
     def set_font(self, font):
-        """フォントファイルを読み込んで設定する。"""
-        self._font = VerticalFont(font)
+        """指定したフォント、または Matplotlib の既定フォントを読み込む。"""
+        self._font = VerticalFont(resolve_font(font))
         self._invalidate()
 
     def set_orientation(self, orientation):

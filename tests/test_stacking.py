@@ -24,7 +24,7 @@ from tategaki import stack_label
     ],
 )
 def test_clusters(label, expected):
-    """各種書記素を分割せず、書記素間だけ改行することを確認する。"""
+    """書記素クラスタを保ちながら文字列を縦積みに変換することを確認する。"""
     result = stack_label(label)
     assert result == expected
     assert result.replace("\n", "") == label
@@ -32,13 +32,13 @@ def test_clusters(label, expected):
 
 @pytest.mark.parametrize("control", ["\n", "\r", "\t", "\0", "\x7f", "\x85", "\u2028", "\u2029"])
 def test_controls(control):
-    """制御文字と区切り文字を拒否することを確認する。"""
+    """制御文字を含むラベルが拒否されることを確認する。"""
     with pytest.raises(ValueError):
         stack_label("A" + control)
 
 
 @pytest.mark.parametrize("label", [None, 1, b"A", ["A"]])
 def test_types(label):
-    """文字列以外の入力を拒否することを確認する。"""
+    """文字列以外のラベルが拒否されることを確認する。"""
     with pytest.raises(TypeError):
         stack_label(label)

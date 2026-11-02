@@ -13,7 +13,7 @@ from tategaki import set_xticklabels
 
 
 def test_fixed_categories_and_reapplication():
-    """固定位置へのラベル設定と再設定後の状態を確認する。"""
+    """固定位置の縦積み目盛りを再設定しても軸上の要素が増えないことを確認する。"""
     with plt.rc_context({"text.usetex": True, "text.parse_math": True}):
         fig, ax = plt.subplots()
         bars = ax.bar([0, 2, 5, 7], [10, 24, 36, 18])
@@ -45,12 +45,11 @@ def test_fixed_categories_and_reapplication():
         ([0], ["A"], {"pad": -1}, ValueError),
         ([0], ["A"], {"linespacing": 0}, ValueError),
         ([0], ["A"], {"engine": "unknown"}, ValueError),
-        ([0], ["A"], {"engine": "opentype"}, ValueError),
         ([0], ["A"], {"font": "unused.ttf"}, ValueError),
     ],
 )
 def test_invalid_does_not_mutate_axis(positions, labels, kwargs, error):
-    """不正な引数で例外が発生しても軸の設定が変わらないことを確認する。"""
+    """不正な目盛り設定が例外を出し、既存の軸設定を変更しないことを確認する。"""
     fig, ax = plt.subplots()
     locator = ax.xaxis.get_major_locator()
     with pytest.raises(error):
@@ -60,7 +59,7 @@ def test_invalid_does_not_mutate_axis(positions, labels, kwargs, error):
 
 
 def test_empty():
-    """ラベルが空の場合に空の結果を返すことを確認する。"""
+    """空の位置とラベルを指定した場合に空の結果を返すことを確認する。"""
     fig, ax = plt.subplots()
     assert set_xticklabels(ax, [], []) == []
     plt.close(fig)

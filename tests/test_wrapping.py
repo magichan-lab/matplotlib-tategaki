@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from matplotlib.axes import Axes
+from matplotlib.font_manager import FontProperties, findfont, fontManager
 from matplotlib.text import Text
 
 import tategaki
@@ -21,7 +22,7 @@ pytest_plugins = ("test_vertical",)
 
 @pytest.fixture(autouse=True)
 def wrapping():
-    """各テストの前後で縦書きラッパーと図の状態を初期化する。"""
+    """各テストの前後で Matplotlib の縦書き拡張を有効化・解除する。"""
     tategaki.enable()
     yield
     tategaki.disable()
@@ -29,7 +30,7 @@ def wrapping():
 
 
 def test_text_alignment_updates_and_exports(font_file):
-    """文字の配置、属性変更、画像保存と除去を確認する。"""
+    """縦書きテキストの位置揃え、属性変更、各形式への保存を確認する。"""
     fig, ax = plt.subplots()
     artist = ax.text(
         0.5,
@@ -60,7 +61,7 @@ def test_text_alignment_updates_and_exports(font_file):
 
 
 def test_axis_labels_position_resize_and_switch(font_file):
-    """軸タイトルの位置、DPI 変更と通常表示への復帰を確認する。"""
+    """縦書き軸タイトルの位置、DPI 変更、横書きへの切り替えを確認する。"""
     fig, ax = plt.subplots(layout="constrained")
     for method in (ax.set_xlabel, ax.set_ylabel):
         label = method("東京", writing_mode="vertical-rl", font=font_file, fontsize=16, labelpad=14)
@@ -83,7 +84,7 @@ def test_axis_labels_position_resize_and_switch(font_file):
 
 
 def test_ticks_replace_and_restore(font_file):
-    """縦書き目盛りの再設定と通常の目盛りへの復帰を確認する。"""
+    """縦書き目盛りの差し替えと通常の目盛りへの復帰を確認する。"""
     fig, ax = plt.subplots()
     handle = ax.set_xticks(
         ticks=[0, 1],
@@ -105,7 +106,7 @@ def test_ticks_replace_and_restore(font_file):
 
 
 def test_validation_does_not_attach_artists(font_file):
-    """不正な設定の検証時に Artist が軸へ追加されないことを確認する。"""
+    """無効な縦書き設定が軸に Artist を追加しないことを確認する。"""
     fig, ax = plt.subplots()
     for options in (
         {"writing_mode": "invalid"},
@@ -122,7 +123,7 @@ def test_validation_does_not_attach_artists(font_file):
 
 
 def test_enable_disable_and_pyplot(font_file):
-    """有効化と無効化の反復、pyplot 経由の呼び出しを確認する。"""
+    """拡張の重複有効化・解除と pyplot 経由の呼び出しを確認する。"""
     method = Axes.text
     tategaki.enable()
     assert Axes.text is method
@@ -141,3 +142,35 @@ def test_enable_disable_and_pyplot(font_file):
     assert artist in ax.texts
     with pytest.raises(AttributeError):
         ax.text(0, 0, "東京", writing_mode="vertical-rl")
+
+
+def test_rcparams_font_used_when_omitted(font_file):
+    """フォント未指定時に rcParams のフォントが使われることを確認する。"""
+    fontManager.addfont(str(font_file))
+    with plt.rc_context({"font.family": "Test Vertical"}):
+        selected = findfont(FontProperties(), fallback_to_default=False)
+        fig, ax = plt.subplots()
+        ax.set_yticks([])
+        text = ax.text(0.5, 0.5, "東京", writing_mode="vertical-rl")
+        xlabel = ax.set_xlabel("東京", writing_mode="vertical-rl")
+        ylabel = ax.set_ylabel("東京", writing_mode="vertical-rl")
+        handle = ax.set_xticks([0], ["東京"], writing_mode="vertical-rl")
+        assert isinstance(handle, tategaki.VerticalTickHandle)
+        for artist in (text, xlabel, ylabel, *handle.artists):
+            vertical = artist._vertical if isinstance(artist, WrappedVerticalText) else artist
+            assert vertical._font.filename == selected
+        fig.canvas.draw()
+        replacement = ax.set_xticklabels(["東京"], writing_mode="vertical-rl")
+        assert replacement.artists[0]._font.filename == selected
+        direct = tategaki.VerticalText(0, 0, "東京")
+        assert direct._font.filename == selected
+        fig.canvas.draw()
+
+
+def test_explicit_font_overrides_rcparams(font_file):
+    """明示したフォントが rcParams の設定より優先されることを確認する。"""
+    with plt.rc_context({"font.family": "DejaVu Sans"}):
+        fig, ax = plt.subplots()
+        artist = ax.text(0, 0, "東京", writing_mode="vertical-rl", font=font_file)
+        assert artist._vertical._font.filename == str(font_file.resolve())
+        fig.canvas.draw()

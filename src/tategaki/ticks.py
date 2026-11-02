@@ -32,12 +32,33 @@ def set_xticklabels(
 ) -> list[Text] | VerticalTickHandle:
     """x 軸下側の固定ラベルを縦積みまたは OpenType の輪郭で設定する。
 
-    主目盛りの Locator と Formatter を固定カテゴリ用に置き換える。位置には
-    重複のない有限な実数を指定する。ラベル名の重複は許可する。``pad`` は
-    Axes 下端からのポイント単位の距離で、目盛り線の長さを考慮する。
+    主目盛りの Locator と Formatter を固定カテゴリ用に置き換える。
+    位置は重複しない有限の実数とし、ラベル文字列の重複は許す。
+    ``stacked`` の ``pad`` は目盛り線の長さも考慮する。
+    ``opentype`` の ``pad`` は Axes 下端からのポイント数を表す。
     ``linespacing`` は Matplotlib の行間であり、フォントの送り量ではない。
-    ``stacked`` は通常の Text のリストを返す。``opentype`` は ``font`` が
-    必須で、VerticalTickHandle を返す。軸タイトルの余白は ``labelpad`` で指定する。
+    軸タイトルとの間隔は必要に応じて ``labelpad`` で指定する。
+
+    Args:
+        ax: 対象の座標軸。
+        positions: ラベルを置く X 座標の列。
+        labels: 各位置のラベル文字列の列。
+        fontproperties: ``stacked`` で用いる Matplotlib フォント設定。
+        fontsize: 文字サイズ（ポイント）。
+        linespacing: ``stacked`` で用いる Matplotlib の行間倍率。
+        pad: ラベルとの間隔（ポイント）。基準位置は描画方式により異なる。
+        orientation: ``"upright"`` または、OpenType 用の ``"mixed"``。
+        engine: 改行による ``"stacked"`` または輪郭を描く ``"opentype"``。
+        font: OpenType 用のフォントファイル。省略時は rcParams から選ぶ。
+        color: OpenType 用ラベルの色。
+
+    Returns:
+        ``stacked`` では Matplotlib の ``Text`` のリスト、
+        ``opentype`` では取り外し用の ``VerticalTickHandle``。
+
+    Raises:
+        TypeError: ラベル列として単一の文字列を渡した場合。
+        ValueError: 位置、ラベル、表示設定が不正な場合。
     """
     if engine not in {"stacked", "opentype"}:
         raise ValueError("engine must be stacked or opentype")
@@ -69,8 +90,6 @@ def set_xticklabels(
             raise ValueError(f"invalid {name}")
     displayed = [stack_label(label) for label in labels]
     if engine == "opentype":
-        if font is None:
-            raise ValueError("opentype requires an explicit font file")
         if fontproperties is not None:
             raise ValueError("use font, not fontproperties, with opentype")
         if linespacing != 1.0:
