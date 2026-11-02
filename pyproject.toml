@@ -10,7 +10,12 @@ readme = "README.md"
 license = "MIT AND Unicode-3.0"
 license-files = ["LICENSE", "src/tategaki/UNICODE-LICENSE.txt"]
 requires-python = ">=3.11"
-dependencies = ["matplotlib>=3.11.2", "regex>=2026.9.29", "uharfbuzz>=0.55,<1"]
+dependencies = [
+    "fonttools>=4.68",
+    "matplotlib>=3.11.2",
+    "regex>=2026.9.29",
+    "uharfbuzz>=0.55,<1",
+]
 keywords = ["matplotlib", "Japanese", "vertical text", "tategaki"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -24,9 +29,6 @@ classifiers = [
 [project.urls]
 Repository = "https://github.com/magichan-lab/matplotlib-tategaki"
 Issues = "https://github.com/magichan-lab/matplotlib-tategaki/issues"
-
-[project.optional-dependencies]
-opentype = ["fonttools>=4.68"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -43,7 +45,6 @@ dev = [
     "pytest>=8",
     "pytest-cov>=6",
     "ruff>=0.9",
-    "fonttools>=4.68",
 ]
 
 # ----------------------------------------

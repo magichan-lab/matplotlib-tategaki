@@ -1,6 +1,6 @@
 # Copyright (c) 2026 magichan (https://github.com/magichan-lab)
 
-"""OpenType の字形整形をフォント単位で行う。追加依存は必要時に読み込む。"""
+"""OpenType の字形整形をフォント単位で行う。依存ライブラリは必要時に読み込む。"""
 
 import warnings
 from dataclasses import dataclass, replace
@@ -148,7 +148,7 @@ class VerticalFont:
             from fontTools.ttLib import TTFont
         except ImportError as exc:
             raise ImportError(
-                "VerticalText requires: pip install 'matplotlib-tategaki[opentype]'"
+                "VerticalText requires fontTools and uharfbuzz; reinstall matplotlib-tategaki"
             ) from exc
         self.filename = str(Path(filename).resolve())
         self.data = Path(filename).read_bytes()

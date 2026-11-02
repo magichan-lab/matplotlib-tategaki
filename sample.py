@@ -4,7 +4,7 @@
 
 実行: python sample.py --font /path/to/JapaneseFont.ttf
 保存: python sample.py --font /path/to/JapaneseFont.ttf --output sample.png
-必要なライブラリ: python -m pip install 'matplotlib-tategaki[opentype]'
+必要なライブラリ: python -m pip install matplotlib-tategaki
 """
 
 import argparse
