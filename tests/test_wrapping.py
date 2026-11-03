@@ -13,11 +13,10 @@ import pytest
 from matplotlib.axes import Axes
 from matplotlib.font_manager import FontProperties, findfont, fontManager
 from matplotlib.text import Text
+from test_vertical import font_file as font_file
 
 import tategaki
 from tategaki.wrapping import WrappedVerticalText
-
-pytest_plugins = ("test_vertical",)
 
 
 @pytest.fixture(autouse=True)

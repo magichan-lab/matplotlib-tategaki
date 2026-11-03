@@ -12,8 +12,8 @@ license-files = ["LICENSE", "src/tategaki/UNICODE-LICENSE.txt"]
 requires-python = ">=3.11"
 dependencies = [
     "fonttools>=4.68",
-    "matplotlib>=3.11.2",
-    "regex>=2026.9.29",
+    "matplotlib>=3.10.0",
+    "regex>=2025.11.3",
     "uharfbuzz>=0.55,<1",
 ]
 keywords = ["matplotlib", "Japanese", "vertical text", "tategaki"]

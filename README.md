@@ -43,7 +43,7 @@ plt.show()
 ## 動作環境
 
 - Python 3.11 以上
-- Matplotlib 3.11.2 以上
+- Matplotlib 3.10.0 以上
 - 日本語フォントが設定された環境
 
 ## FAQ
