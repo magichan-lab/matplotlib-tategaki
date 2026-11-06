@@ -40,6 +40,12 @@ plt.show()
 
 ![縦書きの目盛りラベルを表示した棒グラフ](https://raw.githubusercontent.com/magichan-lab/matplotlib-tategaki/main/images/quickstart.png)
 
+## 改行
+
+`writing_mode="vertical-rl"` の文字列に `\n` を入れると、そこで列が切り替わります。次の列は左側に置かれ、各列は上端から始まります。空の列も幅を持つため、`"東京\n\n大阪"` では二つの文字列の間に一列分の空きができます。
+
+`stack_label()` と `set_xticklabels(..., engine="stacked")` では、一字ずつ並べた上で入力の `\n` を空行として表します。CR やタブなどの制御文字は使用できません。
+
 ## 動作環境
 
 - Python 3.11 以上

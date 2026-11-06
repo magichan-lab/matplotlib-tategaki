@@ -91,8 +91,12 @@ def make_layout(font: VerticalFont, text: str, orientation="upright") -> Vertica
             )
     path = Path.make_compound_path(*paths) if paths else Path(np.empty((0, 2)), readonly=True)
     ink = path.get_extents() if paths else None
+    columns = text.count("\n") + 1 if text else 0
     logical = Bbox.from_extents(
-        -font.upem / 2 if text else 0, -shaped.advance, font.upem / 2 if text else 0, 0
+        -(columns - 0.5) * font.upem if columns else 0,
+        -shaped.advance,
+        font.upem / 2 if columns else 0,
+        0,
     )
     bounds = Bbox.union([logical, ink]) if ink is not None else logical
     return VerticalLayout(

@@ -10,7 +10,7 @@ from pathlib import Path
 import regex
 
 from .orientation import cluster_orientation
-from .stacking import stack_label
+from .stacking import _validate_label
 
 
 class UnsupportedFontError(ValueError):
@@ -75,7 +75,7 @@ def split_runs(
     """
     if orientation not in {"upright", "mixed"}:
         raise ValueError('orientation must be "upright" or "mixed"')
-    stack_label(text)  # 型と制御文字を共通の処理で検証し、正規化はしない。
+    _validate_label(text, allow_newline=False)
     matches = list(regex.finditer(r"\X", text))
     scripts = []
     for match in matches:
@@ -200,6 +200,27 @@ class VerticalFont:
         未対応の異体字列や ZWJ 列、欠落した字形は例外にする。
         縦書き用の代替字形がない場合は警告する。
         """
+        _validate_label(text, allow_newline=True)
+        if orientation not in {"upright", "mixed"}:
+            raise ValueError('orientation must be "upright" or "mixed"')
+        if "\n" in text:
+            runs, graphemes, glyphs = [], [], []
+            offset = 0
+            advance = 0.0
+            for column, part in enumerate(text.split("\n")):
+                shaped = self.shape(part, orientation)
+                runs.extend(
+                    replace(run, start=run.start + offset, end=run.end + offset)
+                    for run in shaped.runs
+                )
+                graphemes.extend((start + offset, end + offset) for start, end in shaped.graphemes)
+                glyphs.extend(
+                    replace(glyph, cluster=glyph.cluster + offset, x=glyph.x - column * self.upem)
+                    for glyph in shaped.glyphs
+                )
+                advance = max(advance, shaped.advance)
+                offset += len(part) + 1
+            return ShapedText(text, tuple(runs), tuple(graphemes), tuple(glyphs), advance)
         runs, graphemes = split_runs(text, orientation)
         original_runs = runs
         # 未対応の異体字列を基本字形に置き換えて表示しない。

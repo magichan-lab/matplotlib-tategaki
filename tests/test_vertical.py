@@ -115,6 +115,37 @@ def test_glyph_ids_substitution_clusters_and_spacing(font_file):
     assert make_layout(font, "").bounds == (0, 0, 0, 0)
 
 
+@pytest.mark.parametrize("orientation", ["upright", "mixed"])
+def test_newlines_create_right_to_left_columns(font_file, orientation):
+    """改行が列を分け、字形位置、元文字列の添字、論理範囲を保つ。"""
+    font = VerticalFont(font_file)
+    shaped = font.shape("AB\n\n東京", orientation)
+    assert shaped.text == "AB\n\n東京"
+    assert [glyph.cluster for glyph in shaped.glyphs] == [0, 1, 4, 5]
+    assert shaped.graphemes == ((0, 1), (1, 2), (4, 5), (5, 6))
+    assert all(shaped.text[run.start : run.end] == run.text for run in shaped.runs)
+    assert shaped.advance == 2000
+    right = font.shape("AB", orientation)
+    left = font.shape("東京", orientation)
+    assert [(g.x, g.y) for g in shaped.glyphs[:2]] == [(g.x, g.y) for g in right.glyphs]
+    assert [(g.x, g.y) for g in shaped.glyphs[2:]] == [(g.x - 2000, g.y) for g in left.glyphs]
+    layout = make_layout(font, "AB\n\n東京", orientation)
+    assert layout.logical_bounds == (-2500, -2000, 500, 0)
+    assert make_layout(font, "\n").logical_bounds == (-1500, 0, 500, 0)
+    assert make_layout(font, "A\n").logical_bounds == (-1500, -1000, 500, 0)
+
+    fig = plt.figure()
+    artist = VerticalText(
+        0.5, 0.8, "AB\n\n東京", font=font_file, orientation=orientation, transform=fig.transFigure
+    )
+    fig.add_artist(artist)
+    for fmt in ("png", "svg", "pdf"):
+        output = io.BytesIO()
+        fig.savefig(output, format=fmt, bbox_inches="tight")
+        assert len(output.getvalue()) > 500
+    plt.close(fig)
+
+
 def test_errors_and_missing_alternate_warning(font_file, tmp_path):
     """未対応の入力とフォントで例外や縦書き代替グリフの警告が出ることを確認する。"""
     font = VerticalFont(font_file)
@@ -124,7 +155,7 @@ def test_errors_and_missing_alternate_warning(font_file, tmp_path):
     with pytest.raises(ValueError):
         font.shape("A", "sideways")
     with pytest.raises(ValueError):
-        font.shape("A\n")
+        split_runs("A\n")
     with pytest.raises(TypeError):
         font.shape(None)
     # 機能の対応状況はフォント読込時だけでなく、句読点ごとに確認する。

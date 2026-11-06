@@ -21,16 +21,18 @@ from tategaki import stack_label
         ("👩\u200d💻A", "👩\u200d💻\nA"),
         ("🇯🇵A", "🇯🇵\nA"),
         ("$x$", "$\nx\n$"),
+        ("AB\nCD", "A\nB\n\nC\nD"),
+        ("\nA\n", "\n\nA\n\n"),
     ],
 )
 def test_clusters(label, expected):
     """書記素クラスタを保ちながら文字列を縦積みに変換することを確認する。"""
     result = stack_label(label)
     assert result == expected
-    assert result.replace("\n", "") == label
+    assert result.replace("\n", "") == label.replace("\n", "")
 
 
-@pytest.mark.parametrize("control", ["\n", "\r", "\t", "\0", "\x7f", "\x85", "\u2028", "\u2029"])
+@pytest.mark.parametrize("control", ["\r", "\t", "\0", "\x7f", "\x85", "\u2028", "\u2029"])
 def test_controls(control):
     """制御文字を含むラベルが拒否されることを確認する。"""
     with pytest.raises(ValueError):

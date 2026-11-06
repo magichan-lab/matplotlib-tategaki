@@ -38,7 +38,7 @@ def test_fixed_categories_and_reapplication():
         ([0, 0], ["A", "B"], {}, ValueError),
         ([float("nan")], ["A"], {}, ValueError),
         (["a"], ["A"], {}, ValueError),
-        ([0], ["A\n"], {}, ValueError),
+        ([0], ["A\r"], {}, ValueError),
         ([0], [None], {}, TypeError),
         ([0], "A", {}, TypeError),
         ([0], ["A"], {"orientation": "mixed"}, ValueError),
@@ -62,4 +62,13 @@ def test_empty():
     """空の位置とラベルを指定した場合に空の結果を返すことを確認する。"""
     fig, ax = plt.subplots()
     assert set_xticklabels(ax, [], []) == []
+    plt.close(fig)
+
+
+def test_explicit_newline_keeps_a_blank_row():
+    """簡易縦積みで入力改行が文字間に空行として残る。"""
+    fig, ax = plt.subplots()
+    labels = set_xticklabels(ax, [0], ["AB\nCD"])
+    assert labels[0].get_text() == "A\nB\n\nC\nD"
+    fig.canvas.draw()
     plt.close(fig)

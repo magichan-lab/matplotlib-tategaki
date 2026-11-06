@@ -59,6 +59,27 @@ def test_text_alignment_updates_and_exports(font_file):
     assert artist not in ax.texts
 
 
+def test_multicolumn_text_alignment(font_file):
+    """複数列の縦書きでも Text の中央揃えと描画範囲が一致する。"""
+    fig, ax = plt.subplots()
+    artist = ax.text(
+        0.5,
+        0.5,
+        "東京\nAB",
+        writing_mode="vertical-rl",
+        font=font_file,
+        ha="center",
+        va="center",
+        transform=ax.transAxes,
+    )
+    bounds = artist.get_window_extent()
+    np.testing.assert_allclose(
+        [(bounds.x0 + bounds.x1) / 2, (bounds.y0 + bounds.y1) / 2],
+        ax.transAxes.transform((0.5, 0.5)),
+    )
+    fig.canvas.draw()
+
+
 def test_axis_labels_position_resize_and_switch(font_file):
     """縦書き軸タイトルの位置、DPI 変更、横書きへの切り替えを確認する。"""
     fig, ax = plt.subplots(layout="constrained")
