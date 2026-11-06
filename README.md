@@ -52,6 +52,8 @@ plt.show()
 
 **縦書きにならない場合は？** `tategaki.enable()` を呼び、`ax.set_xticks()` に `writing_mode="vertical-rl"` とラベルを指定してください。
 
+**Seaborn のグラフでも縦書きを使えますか？** はい。Seaborn で描画した後、Matplotlib の `Axes` に `ax.set_xticks(..., writing_mode="vertical-rl")` を指定できます。`sns.catplot()` などの複数面で使う場合は、`g.axes.flat` から各軸を取得してください。共有 x 軸は対応していないため、`sharex=False` でご使用ください。
+
 **X 軸の目盛り以外では縦書きを使えませんか？** 使えます。`tategaki.enable()` の後、`ax.text()`、`ax.set_xlabel()`、`ax.set_ylabel()` にも `writing_mode="vertical-rl"` を指定できます。X 軸の目盛りラベルは `ax.set_xticklabels()` でも縦書きにできます。
 
 **括弧や句読点（`（）「」、。`）も縦書きに対応していますか？** はい。縦書き用の字形を持つ日本語フォントを使用すると、縦書きに適した形で表示されます。フォントに縦書き用の字形がない場合は警告が出ます。
